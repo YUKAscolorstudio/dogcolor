@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>うちの子、なに色？🐶 いぬカラー診断</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+  :root {
+    --cream: #F7F4EF;
+    --soft-blue: #B8D4E8;
+    --dusty-blue: #7AAAC8;
+    --terracotta: #C87850;
+    --sage: #A0B89A;
+    --sand: #D4C0A0;
+    --text: #38301E;
+    --text-light: #7A6848;
+    --card-bg: #FDFAF5;
+    --shadow: rgba(120, 90, 50, 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Zen Maru Gothic', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #EAF2F8 0%, #F5EDE3 50%, #EAF0E8 100%);
+    padding: 36px 20px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: rgba(184,212,232,0.35);
+    border-radius: 50%;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; left: -20px;
+    width: 90px; height: 90px;
+    background: rgba(200,120,80,0.12);
+    border-radius: 50%;
+  }
+  .header-icon { display: flex; justify-content: center; margin-bottom: 10px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.4; }
+  .header p  { margin-top: 8px; font-size: 13px; color: var(--text-light); }
+
+  .progress-wrap { max-width: 480px; margin: 20px auto 0; padding: 0 20px; }
+  .progress-label { font-size: 12px; color: var(--text-light); margin-bottom: 6px; text-align: right; }
+  .progress-bar { height: 6px; background: rgba(120,90,50,0.12); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--dusty-blue), var(--terracotta));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  .card-wrap { max-width: 480px; margin: 20px auto 0; padding: 0 16px; }
+
+  .question-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 20px var(--shadow);
+  }
+
+  .step-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--dusty-blue), var(--terracotta));
+    color: white;
+    font-size: 11px; font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  .question-title { font-size: 18px; font-weight: 700; line-height: 1.5; margin-bottom: 6px; }
+  .question-sub   { font-size: 12px; color: var(--text-light); margin-bottom: 20px; }
+
+  .options-grid { display: grid; gap: 10px; }
+  .options-grid.col2 { grid-template-columns: 1fr 1fr; }
+  .options-grid.col1 { grid-template-columns: 1fr; }
+
+  .option-btn {
+    background: white;
+    border: 2px solid rgba(120,90,50,0.12);
+    border-radius: 14px;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: center;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 14px; font-weight: 500;
+    color: var(--text); line-height: 1.4;
+  }
+  .option-btn:hover {
+    border-color: var(--dusty-blue);
+    background: #F0F6FC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(122,170,200,0.2);
+  }
+  .option-btn.selected {
+    border-color: var(--dusty-blue);
+    background: linear-gradient(135deg, #EEF5FB, #FDF2EA);
+  }
+  .option-emoji { display: block; font-size: 24px; margin-bottom: 4px; }
+  .option-label { display: block; font-size: 13px; }
+  .option-sub   { display: block; font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  /* 品種グループイラスト */
+  .breed-btn { padding: 12px 8px 10px; }
+  .breed-illust { display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+  .breed-illust svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08)); transition: transform 0.2s ease; }
+  .breed-btn:hover .breed-illust svg { transform: scale(1.08) translateY(-2px); }
+  .breed-btn.selected .breed-illust svg { transform: scale(1.1); }
+  .breed-btn .face-normal { opacity: 1; }
+  .breed-btn .face-smile  { opacity: 0; }
+  .breed-btn:hover .face-normal,
+  .breed-btn.selected .face-normal { opacity: 0; }
+  .breed-btn:hover .face-smile,
+  .breed-btn.selected .face-smile  { opacity: 1; }
+
+  .personality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .personality-chip {
+    background: white;
+    border: 2px solid rgba(120,90,50,0.12);
+    border-radius: 99px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .personality-chip:hover { border-color: var(--sage); background: #F3F8F3; }
+  .personality-chip.selected {
+    border-color: var(--sage);
+    background: linear-gradient(135deg, #EEF6EE, #EEF4FA);
+    font-weight: 700;
+  }
+  .personality-chip .chip-emoji { font-size: 16px; }
+
+  .next-btn {
+    display: block; width: 100%;
+    margin-top: 24px; padding: 16px;
+    background: linear-gradient(135deg, var(--dusty-blue), var(--terracotta));
+    color: white; border: none; border-radius: 14px;
+    font-family: 'Zen Maru Gothic', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(122,170,200,0.35);
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(122,170,200,0.45); }
+  .next-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .result-card {
+    background: var(--card-bg); border-radius: 20px;
+    padding: 32px 24px; box-shadow: 0 4px 20px var(--shadow);
+    text-align: center;
+  }
+  .result-color-circle {
+    width: 100px; height: 100px; border-radius: 50%;
+    margin: 0 auto 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+  }
+  .result-color-name    { font-size: 26px; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .result-color-name-en { font-size: 13px; color: var(--text-light); margin-bottom: 18px; letter-spacing: 0.08em; }
+  .result-section { background: white; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; text-align: left; }
+  .result-section-title { font-size: 11px; font-weight: 700; color: var(--text-light); letter-spacing: 0.1em; margin-bottom: 8px; }
+  .result-section p { font-size: 14px; line-height: 1.7; }
+  .compat-colors { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  .compat-chip { display: flex; align-items: center; gap: 6px; background: var(--cream); border-radius: 99px; padding: 6px 12px; font-size: 13px; }
+  .compat-dot  { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+
+  .retry-btn {
+    display: block; width: 100%; margin-top: 20px; padding: 14px;
+    background: transparent; color: var(--text-light);
+    border: 2px solid rgba(120,90,50,0.15); border-radius: 14px;
+    font-family: 'Zen Maru Gothic', sans-serif; font-size: 14px;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .retry-btn:hover { border-color: var(--dusty-blue); color: var(--text); }
+  .share-hint { font-size: 11px; color: var(--text-light); margin-top: 16px; text-align: center; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .fade-up { animation: fadeUp 0.3s ease both; }
+  @keyframes pop { 0%{transform:scale(0.8);opacity:0;} 60%{transform:scale(1.06);} 100%{transform:scale(1);opacity:1;} }
+  .pop { animation: pop 0.45s ease both; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">
+    <!-- 白い立ち耳犬（シンプルな犬顔SVG） -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="88" height="88">
+      <!-- 耳（左・垂れ） -->
+      <ellipse cx="22" cy="46" rx="13" ry="22" fill="#E8D8C8" transform="rotate(15,22,46)"/>
+      <ellipse cx="22" cy="46" rx="8"  ry="15" fill="#D4B898" opacity="0.7" transform="rotate(15,22,46)"/>
+      <!-- 耳（右・垂れ） -->
+      <ellipse cx="78" cy="46" rx="13" ry="22" fill="#E8D8C8" transform="rotate(-15,78,46)"/>
+      <ellipse cx="78" cy="46" rx="8"  ry="15" fill="#D4B898" opacity="0.7" transform="rotate(-15,78,46)"/>
+      <!-- 顔 -->
+      <circle cx="50" cy="52" r="32" fill="#F5EEE4"/>
+      <!-- 口周りのふくらみ -->
+      <ellipse cx="50" cy="65" rx="16" ry="12" fill="#EDE0CC"/>
+      <!-- 目（左） -->
+      <ellipse cx="38" cy="50" rx="6" ry="6.5" fill="white"/>
+      <circle  cx="39" cy="51.5" r="4" fill="#2C2018"/>
+      <circle  cx="40.5" cy="50" r="1.6" fill="white"/>
+      <!-- 目（右） -->
+      <ellipse cx="62" cy="50" rx="6" ry="6.5" fill="white"/>
+      <circle  cx="63" cy="51.5" r="4" fill="#2C2018"/>
+      <circle  cx="64.5" cy="50" r="1.6" fill="white"/>
+      <!-- 鼻 -->
+      <ellipse cx="50" cy="62" rx="7" ry="5" fill="#3A2820"/>
+      <ellipse cx="48" cy="61" rx="2" ry="1.5" fill="white" opacity="0.4"/>
+      <!-- 口 -->
+      <path d="M44 67 Q50 73 56 67" stroke="#6A4030" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- ほっぺ -->
+      <circle cx="32" cy="59" r="6" fill="#E8A878" opacity="0.3"/>
+      <circle cx="68" cy="59" r="6" fill="#E8A878" opacity="0.3"/>
+    </svg>
+  </div>
+  <h1>うちの子、なに色？<br>いぬカラー診断</h1>
+  <p>犬種グループ・毛色・性格から、あなたの犬の<br>「パーソナルカラー」を診断！</p>
+</div>
+
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-label" id="progressLabel"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="card-wrap" id="appRoot"></div>
+
+<script>
+// ===== データ =====
+
+const BREED_GROUPS = [
+  { id:'tiny',         label:'超小型犬',      sub:'チワワ・トイプードル・ヨーキーなど（〜4kg）' },
+  { id:'small',        label:'小型犬',        sub:'柴犬・ミニチュアダックス・ポメラニアンなど（4〜10kg）' },
+  { id:'medium',       label:'中型犬',        sub:'ビーグル・コーギー・スピッツなど（10〜25kg）' },
+  { id:'large',        label:'大型犬',        sub:'ゴールデン・ラブラドール・シェパードなど（25〜45kg）' },
+  { id:'giant',        label:'超大型犬',      sub:'グレートデン・セントバーナードなど（45kg〜）' },
+  { id:'flatface',     label:'短頭種',        sub:'パグ・ブルドッグ・ペキニーズなど（鼻ぺちゃ系）' },
+  { id:'longcoat',     label:'長毛・絹毛系',  sub:'マルチーズ・アフガン・ボルゾイなど（さらさら長毛）' },
+  { id:'mixed',        label:'ミックス犬',    sub:'ミックス・雑種のいいとこどり！' },
+];
+
+const COAT_COLORS = [
+  { id:'white',     emoji:'🤍', label:'ホワイト・クリーム',  hex:'#F0EDE4' },
+  { id:'black',     emoji:'🖤', label:'ブラック',             hex:'#2C2C2C' },
+  { id:'brown',     emoji:'🤎', label:'ブラウン・チョコ',    hex:'#7A4A2C' },
+  { id:'golden',    emoji:'✨', label:'ゴールデン・イエロー', hex:'#D4A840' },
+  { id:'gray',      emoji:'🩶', label:'グレー・シルバー',    hex:'#909098' },
+  { id:'red',       emoji:'🧡', label:'レッド・オレンジ',    hex:'#C86030' },
+  { id:'tricolor',  emoji:'🎨', label:'トライカラー',        hex:'#8C7060' },
+  { id:'bicolor',   emoji:'⬛', label:'バイカラー（2色）',  hex:'#606878' },
+  { id:'merle',     emoji:'🌀', label:'マール・ダップル',    hex:'#8898A8' },
+  { id:'spotted',   emoji:'🔵', label:'ぶち・斑',            hex:'#B0A898' },
+];
+
+const GENDERS = [
+  { id:'female', emoji:'♀️', label:'女の子', sub:'メス' },
+  { id:'male',   emoji:'♂️', label:'男の子', sub:'オス' },
+];
+
+const PERSONALITIES = [
+  { id:'loyal',       emoji:'🫡', label:'忠実・一途' },
+  { id:'playful',     emoji:'🎾', label:'遊び大好き' },
+  { id:'calm',        emoji:'😌', label:'おっとり穏やか' },
+  { id:'active',      emoji:'🏃', label:'活発・元気いっぱい' },
+  { id:'affectionate',emoji:'🥰', label:'甘えん坊' },
+  { id:'smart',       emoji:'🧠', label:'賢い・訓練好き' },
+  { id:'stubborn',    emoji:'💪', label:'頑固・マイウェイ' },
+  { id:'anxious',     emoji:'🍃', label:'敏感・繊細' },
+  { id:'social',      emoji:'🤝', label:'人懐こい・社交的' },
+  { id:'protective',  emoji:'🛡️', label:'番犬気質・守り型' },
+  { id:'gentle',      emoji:'🌸', label:'やさしい・温和' },
+  { id:'curious',     emoji:'🔍', label:'好奇心旺盛' },
+  { id:'foodie',      emoji:'🦴', label:'食いしん坊' },
+  { id:'independent', emoji:'🎩', label:'独立心が強い' },
+];
+
+// ===== カラー結果 =====
+const COLOR_RESULTS = {
+  white: {
+    base:        { name:'スノーホワイト',    nameEn:'Snow White',     hex:'#F0EDE4', emoji:'🤍' },
+    affectionate:{ name:'ミルクホワイト',    nameEn:'Milk White',     hex:'#FAF5EE', emoji:'🥛' },
+    calm:        { name:'パールホワイト',    nameEn:'Pearl White',    hex:'#F4F2EC', emoji:'🫧' },
+    anxious:     { name:'ムーンライト',      nameEn:'Moonlight',      hex:'#EEF0F8', emoji:'🌙' },
+  },
+  black: {
+    base:        { name:'ジェットブラック',  nameEn:'Jet Black',      hex:'#202020', emoji:'🌑' },
+    smart:       { name:'エボニー',          nameEn:'Ebony',          hex:'#1C2028', emoji:'🖋' },
+    protective:  { name:'ナイトブラック',    nameEn:'Night Black',    hex:'#181820', emoji:'🛡️' },
+    loyal:       { name:'オニキス',          nameEn:'Onyx',           hex:'#242430', emoji:'💎' },
+  },
+  brown: {
+    base:        { name:'チョコレートブラウン', nameEn:'Chocolate Brown', hex:'#7A4A2C', emoji:'🍫' },
+    affectionate:{ name:'キャラメル',        nameEn:'Caramel',        hex:'#A06830', emoji:'🍮' },
+    calm:        { name:'コーヒーブラウン',  nameEn:'Coffee Brown',   hex:'#684030', emoji:'☕' },
+    foodie:      { name:'シナモン',          nameEn:'Cinnamon',       hex:'#A07040', emoji:'🌿' },
+  },
+  golden: {
+    base:        { name:'ゴールデン',        nameEn:'Golden',         hex:'#D4A840', emoji:'🌟' },
+    social:      { name:'サンシャイン',      nameEn:'Sunshine',       hex:'#E0B840', emoji:'☀️' },
+    playful:     { name:'バタースコッチ',    nameEn:'Butterscotch',   hex:'#D09030', emoji:'🧈' },
+    affectionate:{ name:'ハニーゴールド',    nameEn:'Honey Gold',     hex:'#C89838', emoji:'🍯' },
+  },
+  gray: {
+    base:        { name:'スチールグレー',    nameEn:'Steel Gray',     hex:'#808890', emoji:'⚙️' },
+    calm:        { name:'ミストグレー',      nameEn:'Mist Gray',      hex:'#9AA0A8', emoji:'🌫' },
+    smart:       { name:'スレートグレー',    nameEn:'Slate Gray',     hex:'#707880', emoji:'🩶' },
+    independent: { name:'ストームグレー',    nameEn:'Storm Gray',     hex:'#686870', emoji:'⛈' },
+  },
+  red: {
+    base:        { name:'バーントオレンジ',  nameEn:'Burnt Orange',   hex:'#C86030', emoji:'🔶' },
+    active:      { name:'サンセットレッド',  nameEn:'Sunset Red',     hex:'#C84828', emoji:'🌅' },
+    playful:     { name:'コッパー',          nameEn:'Copper',         hex:'#B86830', emoji:'🪙' },
+    social:      { name:'テラコッタ',        nameEn:'Terracotta',     hex:'#C06848', emoji:'🏺' },
+  },
+  tricolor: {
+    base:        { name:'トワイライト',      nameEn:'Twilight',       hex:'#706050', emoji:'🌆' },
+    loyal:       { name:'ヴィンテージ',      nameEn:'Vintage',        hex:'#786858', emoji:'📜' },
+    protective:  { name:'アース',            nameEn:'Earth',          hex:'#685848', emoji:'🌍' },
+    social:      { name:'ハーモニー',        nameEn:'Harmony',        hex:'#807060', emoji:'🎶' },
+  },
+  bicolor: {
+    base:        { name:'インクブルー',      nameEn:'Ink Blue',       hex:'#506080', emoji:'🖊' },
+    smart:       { name:'ミッドナイト',      nameEn:'Midnight',       hex:'#404860', emoji:'🌃' },
+    calm:        { name:'デニム',            nameEn:'Denim',          hex:'#587090', emoji:'👖' },
+    loyal:       { name:'ネイビー',          nameEn:'Navy',           hex:'#384868', emoji:'⚓' },
+  },
+  merle: {
+    base:        { name:'スモーキーブルー',  nameEn:'Smoky Blue',     hex:'#7890A8', emoji:'💙' },
+    anxious:     { name:'ラベンダーミスト',  nameEn:'Lavender Mist',  hex:'#9090B8', emoji:'🪻' },
+    curious:     { name:'マーブル',          nameEn:'Marble',         hex:'#8898A8', emoji:'🫧' },
+    independent: { name:'ストームブルー',    nameEn:'Storm Blue',     hex:'#6880A0', emoji:'🌊' },
+  },
+  spotted: {
+    base:        { name:'コットン',          nameEn:'Cotton',         hex:'#C8C0B8', emoji:'☁️' },
+    playful:     { name:'コンフェッティ',    nameEn:'Confetti',       hex:'#B8B0A8', emoji:'🎊' },
+    social:      { name:'ドミノ',            nameEn:'Domino',         hex:'#A0A0A8', emoji:'🎲' },
+    gentle:      { name:'モスグリーン',      nameEn:'Moss',           hex:'#90A890', emoji:'🌿' },
+  },
+};
+
+const COMPAT_MAP = {
+  white:    [{ name:'スカイブルー', hex:'#80B8D8' }, { name:'サンドベージュ', hex:'#D8C8A0' }, { name:'ミントグリーン', hex:'#A8C8B8' }],
+  black:    [{ name:'ゴールド', hex:'#C8A820' }, { name:'ディープレッド', hex:'#A02828' }, { name:'シルバー', hex:'#A8B0B8' }],
+  brown:    [{ name:'クリーム', hex:'#F0E0C0' }, { name:'テラコッタ', hex:'#C86840' }, { name:'オリーブ', hex:'#788038' }],
+  golden:   [{ name:'ネイビー', hex:'#304878' }, { name:'ブラウン', hex:'#784830' }, { name:'フォレスト', hex:'#406040' }],
+  gray:     [{ name:'ホワイト', hex:'#F0F0F0' }, { name:'ペールブルー', hex:'#A8C8E0' }, { name:'マスタード', hex:'#C8A020' }],
+  red:      [{ name:'ネイビー', hex:'#304878' }, { name:'クリーム', hex:'#F0E0C0' }, { name:'フォレスト', hex:'#406040' }],
+  tricolor: [{ name:'アイボリー', hex:'#F0EAD8' }, { name:'テラコッタ', hex:'#C86840' }, { name:'オリーブ', hex:'#788038' }],
+  bicolor:  [{ name:'ホワイト', hex:'#F0F0F0' }, { name:'シルバー', hex:'#B0B8C0' }, { name:'スカイブルー', hex:'#80B8D8' }],
+  merle:    [{ name:'シルバー', hex:'#B0B8C0' }, { name:'ラベンダー', hex:'#C0B0D8' }, { name:'ホワイト', hex:'#F0F0F0' }],
+  spotted:  [{ name:'ネイビー', hex:'#304878' }, { name:'テラコッタ', hex:'#C86840' }, { name:'フォレスト', hex:'#406040' }],
+};
+
+const COLOR_MESSAGES = {
+  white:    'ピュアで明るい輝きを持つ子。清潔感と優しさで周りをほっこりさせる存在です🤍',
+  black:    '深みのあるクールな存在感。知性と忠誠心を秘めた、頼もしいパートナーです🌑',
+  brown:    '大地のぬくもりをまとった子。あたたかく包み込むような愛情が魅力です🍫',
+  golden:   '太陽のような明るさを持つ子。その場にいるだけで空気をパッと明るくします☀️',
+  gray:     '落ち着いた気品が漂う子。どんな場でも堂々として、安心感を与えてくれます🩶',
+  red:      '情熱的なエネルギーに満ちた子。行動力と愛情表現の豊かさが魅力です🔶',
+  tricolor: '複雑な深みを持つ個性派。見れば見るほど発見がある、唯一無二の存在です🌆',
+  bicolor:  'コントラストが美しい子。クールな外見の内側に深い愛情をたっぷり持っています💙',
+  merle:    'ミステリアスで幻想的な色合い。感受性豊かで、独自の世界観を持っています🌀',
+  spotted:  '個性的な模様が魅力の子。どんな環境にもなじみながら、自分らしさを輝かせます☁️',
+};
+
+// ===== SVGイラスト =====
+
+// 通常顔
+const FACE_NORMAL = `
+  <ellipse cx="34" cy="44" rx="5" ry="5.5" fill="white"/>
+  <ellipse cx="56" cy="44" rx="5" ry="5.5" fill="white"/>
+  <circle cx="35.5" cy="45.5" r="3.2" fill="#2C2018"/>
+  <circle cx="57.5" cy="45.5" r="3.2" fill="#2C2018"/>
+  <circle cx="37"   cy="44"   r="1.3" fill="white"/>
+  <circle cx="59"   cy="44"   r="1.3" fill="white"/>
+  <ellipse cx="45" cy="56" rx="8" ry="5.5" fill="#D8C8B0"/>
+  <ellipse cx="45" cy="54.5" rx="4.5" ry="3" fill="#2C2018"/>
+  <ellipse cx="43.5" cy="53.5" rx="1.2" ry="1" fill="white" opacity="0.4"/>
+  <path d="M39 59.5 Q45 65 51 59.5" stroke="#6A4838" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+
+// ニコニコ顔
+const FACE_SMILE = `
+  <path d="M29 44 Q34 40 39 44" stroke="#2C2018" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M51 44 Q56 40 61 44" stroke="#2C2018" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="45" cy="56" rx="8" ry="5.5" fill="#D8C8B0"/>
+  <ellipse cx="45" cy="54.5" rx="4.5" ry="3" fill="#2C2018"/>
+  <ellipse cx="43.5" cy="53.5" rx="1.2" ry="1" fill="white" opacity="0.4"/>
+  <path d="M37 59 Q45 67 53 59" stroke="#6A4838" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <circle cx="31" cy="52" r="4" fill="#E8A070" opacity="0.38"/>
+  <circle cx="59" cy="52" r="4" fill="#E8A070" opacity="0.38"/>`;
+
+function makeDogSVG({ bg='#F5EEE4', earsBefore='', earsAfter='', bodyExtras='', faceExtras='' } = {}) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 80" width="68" height="60">
+    ${earsBefore}
+    <circle cx="45" cy="46" r="28" fill="${bg}"/>
+    ${earsAfter}
+    ${bodyExtras}
+    <g class="face-normal">${FACE_NORMAL}${faceExtras}</g>
+    <g class="face-smile">${FACE_SMILE}${faceExtras}</g>
+  </svg>`;
+}
+
+// 垂れ耳（外向き）
+function dogFlopEars(col='#E0C8A8', inner='#C8A880') {
+  return `
+    <ellipse cx="18" cy="50" rx="12" ry="22" fill="${col}" transform="rotate(16,18,50)"/>
+    <ellipse cx="18" cy="50" rx="7"  ry="15" fill="${inner}" opacity="0.65" transform="rotate(16,18,50)"/>
+    <ellipse cx="72" cy="50" rx="12" ry="22" fill="${col}" transform="rotate(-16,72,50)"/>
+    <ellipse cx="72" cy="50" rx="7"  ry="15" fill="${inner}" opacity="0.65" transform="rotate(-16,72,50)"/>`;
+}
+// 立ち耳
+function dogStandEars(col='#E0C8A8', inner='#D0A880') {
+  return `
+    <ellipse cx="26" cy="18" rx="9"  ry="16" fill="${col}"/>
+    <ellipse cx="26" cy="18" rx="5.5" ry="11" fill="${inner}" opacity="0.7"/>
+    <ellipse cx="64" cy="18" rx="9"  ry="16" fill="${col}"/>
+    <ellipse cx="64" cy="18" rx="5.5" ry="11" fill="${inner}" opacity="0.7"/>`;
+}
+// 小さい丸耳
+function dogRoundEars(col='#E0C8A8', inner='#D0A880') {
+  return `
+    <circle cx="24" cy="24" r="11" fill="${col}"/>
+    <circle cx="24" cy="24" r="7"  fill="${inner}" opacity="0.65"/>
+    <circle cx="66" cy="24" r="11" fill="${col}"/>
+    <circle cx="66" cy="24" r="7"  fill="${inner}" opacity="0.65"/>`;
+}
+
+const BREED_SVG = {
+  // 超小型犬：立ち耳・小さな顔（チワワ系）
+  tiny: () => makeDogSVG({
+    bg: '#F5EEE0',
+    earsBefore: dogStandEars('#E8D0A8','#D0A870'),
+    bodyExtras: `<circle cx="45" cy="46" r="22" fill="#F5EEE0"/>`,
+  }),
+  // 小型犬：立ち耳・引き締まった顔（柴犬系）
+  // 小型犬：立ち耳・しっかり顔（柴犬系）
+  small: () => makeDogSVG({
+    bg: '#EDE4D0',
+    earsBefore: dogStandEars('#D8BC88','#C09850'),
+    bodyExtras: `
+      <ellipse cx="45" cy="49" rx="26" ry="25" fill="#EDE4D0"/>
+      <!-- 柴犬らしい白いほほ -->
+      <ellipse cx="35" cy="55" rx="7" ry="5" fill="#F8F0E0" opacity="0.7"/>
+      <ellipse cx="55" cy="55" rx="7" ry="5" fill="#F8F0E0" opacity="0.7"/>`,
+  }),
+  // 中型犬：垂れ耳・中くらいの顔（ビーグル・コーギー系）
+  medium: () => makeDogSVG({
+    bg: '#EEE4D4',
+    earsBefore: dogFlopEars('#D8C098','#C0A070'),
+    bodyExtras: `<ellipse cx="45" cy="49" rx="28" ry="26" fill="#EEE4D4"/>`,
+  }),
+  // 大型犬：垂れ耳・大きな鼻・広い顔
+  large: () => makeDogSVG({
+    bg: '#EAE0CC',
+    earsBefore: dogFlopEars('#D8C098','#C0A070'),
+    bodyExtras: `<circle cx="45" cy="47" r="30" fill="#EAE0CC"/>`,
+    faceExtras: `<ellipse cx="45" cy="58" rx="10" ry="7" fill="#C8B088"/>`,
+  }),
+  // 超大型犬：大きな垂れ耳・どっしり顔
+  giant: () => makeDogSVG({
+    bg: '#E8DCC8',
+    earsBefore: `
+      <ellipse cx="11" cy="54" rx="15" ry="28" fill="#D8C098" transform="rotate(20,11,54)"/>
+      <ellipse cx="11" cy="54" rx="9"  ry="19" fill="#C0A070" opacity="0.65" transform="rotate(20,11,54)"/>
+      <ellipse cx="79" cy="54" rx="15" ry="28" fill="#D8C098" transform="rotate(-20,79,54)"/>
+      <ellipse cx="79" cy="54" rx="9"  ry="19" fill="#C0A070" opacity="0.65" transform="rotate(-20,79,54)"/>`,
+    bodyExtras: `<circle cx="45" cy="48" r="32" fill="#E8DCC8"/>`,
+    faceExtras: `<ellipse cx="45" cy="60" rx="12" ry="8" fill="#C8A880"/>`,
+  }),
+  // 垂れ耳系：大きな垂れ耳・まるい顔
+  flopear: () => makeDogSVG({
+    bg: '#F0E8D8',
+    earsBefore: `
+      <ellipse cx="13" cy="54" rx="14" ry="26" fill="#E0C8A0" transform="rotate(18,13,54)"/>
+      <ellipse cx="13" cy="54" rx="8"  ry="18" fill="#C8A870" opacity="0.65" transform="rotate(18,13,54)"/>
+      <ellipse cx="77" cy="54" rx="14" ry="26" fill="#E0C8A0" transform="rotate(-18,77,54)"/>
+      <ellipse cx="77" cy="54" rx="8"  ry="18" fill="#C8A870" opacity="0.65" transform="rotate(-18,77,54)"/>`,
+  }),
+  // 短頭種：平べったい顔・丸い鼻・しわ
+  flatface: () => makeDogSVG({
+    bg: '#F0E4D4',
+    earsBefore: dogRoundEars('#D8C098','#C0A070'),
+    bodyExtras: `
+      <circle cx="45" cy="48" r="30" fill="#F0E4D4"/>
+      <!-- しわ -->
+      <path d="M33 40 Q45 35 57 40" stroke="#C8A880" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <path d="M36 36 Q45 32 54 36" stroke="#C8A880" stroke-width="1" fill="none" opacity="0.35"/>`,
+    faceExtras: `
+      <!-- フレブル特有の大きな鼻 -->
+      <ellipse cx="45" cy="56" rx="10" ry="7.5" fill="#2C2018"/>
+      <ellipse cx="43" cy="54.5" rx="2.5" ry="2" fill="white" opacity="0.35"/>`,
+  }),
+  // 長毛絹毛系：もふもふ＋垂れ耳
+  longcoat: () => {
+    const silk = Array.from({length:16},(_,i)=>{
+      const a=(i/16)*Math.PI*2, r=26+Math.sin(i*1.8)*4;
+      const x=(45+r*Math.cos(a)).toFixed(1), y=(47+r*Math.sin(a)*0.88).toFixed(1);
+      return `<ellipse cx="${x}" cy="${y}" rx="${(3+Math.sin(i)*1).toFixed(1)}" ry="${(5+Math.sin(i*2)*1.5).toFixed(1)}" fill="#F0E8D8" opacity="0.85" transform="rotate(${((a*180/Math.PI)).toFixed(0)},${x},${y})"/>`;
+    }).join('');
+    return makeDogSVG({
+      bg:'#F8F4EC',
+      earsBefore: dogFlopEars('#EEE0C8','#D8C0A0'),
+      bodyExtras: silk,
+    });
+  },
+  // ふわふわ系：丸耳・もふもふ輪郭（トイプードル系）
+  fluffy: () => {
+    const fluff = Array.from({length:18},(_,i)=>{
+      const a=(i/18)*Math.PI*2, r=28+Math.sin(i*2.1)*3;
+      const x=(45+r*Math.cos(a)).toFixed(1), y=(47+r*Math.sin(a)*0.85).toFixed(1);
+      return `<circle cx="${x}" cy="${y}" r="${(2.8+Math.sin(i)*0.8).toFixed(1)}" fill="#EEE8DC" opacity="0.9"/>`;
+    }).join('');
+    return makeDogSVG({
+      bg:'#F8F2E8',
+      earsBefore: dogRoundEars('#E8D8B8','#D4B888'),
+      bodyExtras: fluff,
+    });
+  },
+  // 立ち耳系（LOOK用）
+  stand: () => makeDogSVG({
+    bg: '#F5EEE0',
+    earsBefore: dogStandEars('#E8D0A8','#D0A870'),
+    bodyExtras: `<circle cx="45" cy="46" r="23" fill="#F5EEE0"/>`,
+  }),
+  // 垂れ耳系（LOOK用）
+  flop: () => makeDogSVG({
+    bg: '#F0E8D8',
+    earsBefore: `
+      <ellipse cx="13" cy="54" rx="14" ry="26" fill="#E0C8A0" transform="rotate(18,13,54)"/>
+      <ellipse cx="13" cy="54" rx="8"  ry="18" fill="#C8A870" opacity="0.65" transform="rotate(18,13,54)"/>
+      <ellipse cx="77" cy="54" rx="14" ry="26" fill="#E0C8A0" transform="rotate(-18,77,54)"/>
+      <ellipse cx="77" cy="54" rx="8"  ry="18" fill="#C8A870" opacity="0.65" transform="rotate(-18,77,54)"/>`,
+  }),
+  // ミックス：左右で耳の形が違う
+  mixed: () => makeDogSVG({
+    bg: '#F0EAE0',
+    earsBefore: `
+      <ellipse cx="22" cy="20" rx="9" ry="16" fill="#E0C8A0"/>
+      <ellipse cx="22" cy="20" rx="5.5" ry="11" fill="#C8A870" opacity="0.7"/>
+      <ellipse cx="72" cy="50" rx="12" ry="22" fill="#D8C898" transform="rotate(-16,72,50)"/>
+      <ellipse cx="72" cy="50" rx="7"  ry="15" fill="#C0A870" opacity="0.65" transform="rotate(-16,72,50)"/>`,
+    bodyExtras: `
+      <circle cx="32" cy="36" r="3" fill="#D4A840" opacity="0.4"/>
+      <circle cx="58" cy="56" r="2.5" fill="#80A870" opacity="0.4"/>`,
+  }),
+};
+
+// ===== サイズグループ =====
+const SIZE_GROUPS = [
+  { id:'tiny',   label:'超小型犬', sub:'〜4kg', emoji:'🐾' },
+  { id:'small',  label:'小型犬',   sub:'4〜10kg', emoji:'🐾' },
+  { id:'medium', label:'中型犬',   sub:'10〜25kg', emoji:'🐾' },
+  { id:'large',  label:'大型犬',   sub:'25〜45kg', emoji:'🐾' },
+  { id:'giant',  label:'超大型犬', sub:'45kg〜', emoji:'🐾' },
+];
+
+// ===== 見た目の特徴グループ =====
+const LOOK_GROUPS = [
+  { id:'stand',    label:'立ち耳',     sub:'チワワ・柴犬・ジャーマンシェパードなど', svgId:'stand' },
+  { id:'flop',     label:'垂れ耳',     sub:'ビーグル・ゴールデン・スパニエルなど',   svgId:'flop' },
+  { id:'fluffy',   label:'ふわふわ系', sub:'トイプードル・ポメラニアン・サモエドなど', svgId:'fluffy' },
+  { id:'flatface', label:'短頭種',     sub:'パグ・フレブル・ブルドッグなど',         svgId:'flatface' },
+  { id:'longcoat', label:'長毛・絹毛', sub:'マルチーズ・アフガン・ボルゾイなど',     svgId:'longcoat' },
+  { id:'mixed',    label:'ミックス',   sub:'雑種・ミックス犬',                       svgId:'mixed' },
+];
+
+// ===== アプリ状態 =====
+// step: 0=サイズ, 1=見た目, 2=毛色, 3=性別, 4=性格, 5=結果
+let state = { step:0, size:null, look:null, coat:null, gender:null, personalities:[] };
+const STEPS = ['size','look','coat','gender','personality','result'];
+
+function getResult() {
+  const table = COLOR_RESULTS[state.coat];
+  if (!table) return COLOR_RESULTS['golden'].base;
+  for (const p of state.personalities) { if (table[p]) return table[p]; }
+  return table.base;
+}
+
+function updateProgress() {
+  const wrap  = document.getElementById('progressWrap');
+  const fill  = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  wrap.style.display = 'block';
+  const pct = state.step >= STEPS.length-1 ? 100 : Math.round((state.step/(STEPS.length-1))*100);
+  fill.style.width = pct+'%';
+  label.textContent = state.step >= STEPS.length-1 ? '診断完了！' : `STEP ${state.step+1} / ${STEPS.length-1}`;
+}
+
+function render() {
+  const root = document.getElementById('appRoot');
+  updateProgress();
+  if      (state.step===0) renderSize(root);
+  else if (state.step===1) renderLook(root);
+  else if (state.step===2) renderCoat(root);
+  else if (state.step===3) renderGender(root);
+  else if (state.step===4) renderPersonality(root);
+  else                     renderResult(root);
+}
+
+// STEP 1: サイズ選択
+function renderSize(root) {
+  root.innerHTML = `
+    <div class="question-card fade-up">
+      <span class="step-badge">STEP 1 · 体の大きさ</span>
+      <div class="question-title">うちの子、何サイズ？🐶</div>
+      <div class="question-sub">体格に一番近いものをえらんでください</div>
+      <div class="options-grid col1" id="sizeGrid"></div>
+      <button class="next-btn" id="nextBtn" disabled onclick="nextStep()">つぎへ →</button>
+    </div>`;
+  const grid = document.getElementById('sizeGrid');
+  SIZE_GROUPS.forEach(s => {
+    const svgFn = BREED_SVG[s.id] || BREED_SVG['small'];
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.style.cssText = 'display:flex;align-items:center;gap:14px;text-align:left;padding:12px 16px;';
+    btn.innerHTML = `
+      <span style="flex-shrink:0">${svgFn()}</span>
+      <span>
+        <span class="option-label" style="font-size:15px;font-weight:700">${s.label}</span>
+        <span class="option-sub" style="display:block;margin-top:2px">${s.sub}</span>
+      </span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('#sizeGrid .option-btn').forEach(x=>x.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.size = s.id;
+      document.getElementById('nextBtn').disabled = false;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// STEP 2: 見た目の特徴選択
+function renderLook(root) {
+  root.innerHTML = `
+    <div class="question-card fade-up">
+      <span class="step-badge">STEP 2 · 見た目の特徴</span>
+      <div class="question-title">耳や毛の感じは？✨</div>
+      <div class="question-sub">一番近い見た目をえらんでください</div>
+      <div class="options-grid col2" id="lookGrid"></div>
+      <button class="next-btn" id="nextBtn" disabled onclick="nextStep()">つぎへ →</button>
+    </div>`;
+  const grid = document.getElementById('lookGrid');
+  LOOK_GROUPS.forEach(l => {
+    const svgFn = BREED_SVG[l.svgId] || BREED_SVG['small'];
+    const btn = document.createElement('button');
+    btn.className = 'option-btn breed-btn';
+    btn.innerHTML = `
+      <span class="breed-illust">${svgFn()}</span>
+      <span class="option-label">${l.label}</span>
+      <span class="option-sub">${l.sub}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('#lookGrid .option-btn').forEach(x=>x.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.look = l.id;
+      document.getElementById('nextBtn').disabled = false;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function renderCoat(root) {
+  root.innerHTML = `
+    <div class="question-card fade-up">
+      <span class="step-badge">STEP 3 · 毛色</span>
+      <div class="question-title">毛色はどれに近い？🎨</div>
+      <div class="question-sub">メインカラーをえらんでください</div>
+      <div class="options-grid col2" id="coatGrid"></div>
+      <button class="next-btn" id="nextBtn" disabled onclick="nextStep()">つぎへ →</button>
+    </div>`;
+  const grid = document.getElementById('coatGrid');
+  COAT_COLORS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `
+      <span class="option-emoji" style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${c.hex};border:1px solid rgba(0,0,0,0.08)"></span>${c.emoji}
+      </span>
+      <span class="option-label">${c.label}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('#coatGrid .option-btn').forEach(x=>x.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.coat = c.id;
+      document.getElementById('nextBtn').disabled = false;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function renderGender(root) {
+  root.innerHTML = `
+    <div class="question-card fade-up">
+      <span class="step-badge">STEP 4 · 性別</span>
+      <div class="question-title">男の子？女の子？</div>
+      <div class="question-sub">どちらですか？</div>
+      <div class="options-grid col2" id="genderGrid"></div>
+      <button class="next-btn" id="nextBtn" disabled onclick="nextStep()">つぎへ →</button>
+    </div>`;
+  const grid = document.getElementById('genderGrid');
+  GENDERS.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-emoji">${g.emoji}</span><span class="option-label">${g.label}</span><span class="option-sub">${g.sub}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('#genderGrid .option-btn').forEach(x=>x.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.gender = g.id;
+      document.getElementById('nextBtn').disabled = false;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function renderPersonality(root) {
+  root.innerHTML = `
+    <div class="question-card fade-up">
+      <span class="step-badge">STEP 5 · 性格</span>
+      <div class="question-title">どんな子？🐾</div>
+      <div class="question-sub">あてはまるものをいくつでも（1つ以上）</div>
+      <div class="personality-grid" id="personalityGrid"></div>
+      <button class="next-btn" id="nextBtn" disabled onclick="nextStep()">診断する 🔮</button>
+    </div>`;
+  const grid = document.getElementById('personalityGrid');
+  PERSONALITIES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'personality-chip';
+    btn.innerHTML = `<span class="chip-emoji">${p.emoji}</span>${p.label}`;
+    btn.onclick = () => {
+      const idx = state.personalities.indexOf(p.id);
+      if (idx===-1) { state.personalities.push(p.id); btn.classList.add('selected'); }
+      else { state.personalities.splice(idx,1); btn.classList.remove('selected'); }
+      document.getElementById('nextBtn').disabled = state.personalities.length===0;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function renderResult(root) {
+  const result = getResult();
+  const compat = COMPAT_MAP[state.coat] || COMPAT_MAP['golden'];
+  const msg    = COLOR_MESSAGES[state.coat] || COLOR_MESSAGES['golden'];
+  const breedLabel  = (SIZE_GROUPS.find(s=>s.id===state.size)?.label || '') + ' · ' + (LOOK_GROUPS.find(l=>l.id===state.look)?.label || '');
+  const coatLabel   = COAT_COLORS.find(c=>c.id===state.coat)?.label || '';
+  const genderLabel = state.gender==='female' ? '女の子' : '男の子';
+
+  root.innerHTML = `
+    <div class="result-card pop">
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:16px">${breedLabel} · ${coatLabel} · ${genderLabel}</div>
+      <div class="result-color-circle" style="background:${result.hex}">${result.emoji}</div>
+      <div class="result-color-name">${result.name}</div>
+      <div class="result-color-name-en">${result.nameEn}</div>
+
+      <div class="result-section">
+        <div class="result-section-title">✦ カラーイメージ</div>
+        <p>${msg}</p>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-title">✦ 相性のいい色</div>
+        <div class="compat-colors">
+          ${compat.map(c=>`
+            <div class="compat-chip">
+              <span class="compat-dot" style="background:${c.hex}"></span>${c.name}
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="result-section">
+        <div class="result-section-title">✦ インテリアヒント</div>
+        <p>首輪・リードや犬用マットに<strong>${compat[0].name}</strong>を取り入れると、うちの子の魅力がぐっと引き立ちます✨ <strong>${compat[1].name}</strong>をバランスカラーにするとおしゃれな空間に。</p>
+      </div>
+
+      <button class="retry-btn" onclick="resetApp()">🔄 もう一度診断する</button>
+      <p class="share-hint">結果をスクショしてSNSでシェアしてね🐾</p>
+    </div>`;
+}
+
+function nextStep() {
+  state.step++;
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+function resetApp() {
+  state = { step:0, size:null, look:null, coat:null, gender:null, personalities:[] };
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+render();
+</script>
+</body>
+</html>
